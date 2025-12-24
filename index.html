@@ -146,25 +146,7 @@ background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1
                         <input ref="widgetInput" type="file" accept="image/*" class="hidden-input" @change="handleWidgetImage">
                     </div>
 
-                    <!-- 右上：角色 App (蓝色小鱼) -->
-                    <div @click="openApp('role')" class="flex flex-col items-center justify-center gap-1 transition active:scale-90">
-                        <div class="w-16 h-16" v-html="customIcons.blueFish"></div>
-                        <span class="text-xs font-bold text-slate-600">角色</span>
-                    </div>
-
-                    <!-- 右下：聊天 App (吐泡泡小鱼) -->
-                    <div @click="openApp('chatApp')" class="flex flex-col items-center justify-center gap-1 transition active:scale-90">
-                        <div class="w-16 h-16" v-html="customIcons.bubbleFish"></div>
-                        <span class="text-xs font-bold text-slate-600">Chat</span>
-                    </div>
-                </div>
-
-                <!-- 只有日记在第二排左侧 -->
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                     <div @click="openApp('diary')" class="flex flex-col items-center justify-center gap-1 transition active:scale-90">
-                        <div class="w-14 h-14" v-html="customIcons.book"></div>
-                        <span class="text-xs font-bold text-slate-600">日记</span>
-                    </div>
+                  
                     <!-- 右边留空或者以后放别的 -->
                 </div>
             </div>
@@ -1441,6 +1423,41 @@ createApp({
                 } catch(e) {}
             }
         });
+    // === 桌面美化相关逻辑 (一定要复制完整，包括 const customIcons = { ) ===
+        
+        const customIcons = {  // <--- 这一行千万不能漏！！！
+            blueFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,50 Q30,30 50,30 Q70,30 80,50 Q70,70 50,70 Q30,70 20,50 Z M80,50 L90,40 M80,50 L90,60 M35,45 A 2 2 0 1 1 35,46" fill="#e0f2fe" opacity="0.9"/></svg>`,
+            bubbleFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M25,55 Q35,35 55,35 Q75,35 85,55 Q75,75 55,75 Q35,75 25,55 Z M85,55 L95,45 M85,55 L95,65 M40,50 A 2 2 0 1 1 40,51" fill="#fce7f3"/><circle cx="20" cy="40" r="3" stroke="#3b82f6"/><circle cx="12" cy="30" r="5" stroke="#3b82f6"/></svg>`,
+            book: `<svg viewBox="0 0 100 100" fill="none" stroke="#8b5e3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,20 L40,20 Q50,20 50,30 L50,80 Q50,70 40,70 L20,70 Q10,70 10,60 L10,30 Q10,20 20,20 Z M50,30 Q50,20 60,20 L80,20 Q90,20 90,30 L90,60 Q90,70 80,70 L60,70 Q50,70 50,80" fill="#fffbf0"/><line x1="50" y1="30" x2="50" y2="80"/></svg>`
+        }; // <--- 这一行有分号，也别漏了
+
+        const handleWidgetImage = (e) => {
+            const f = e.target.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = (ev) => { 
+                if(!store.theme) store.theme = {};
+                store.theme.widgetImg = ev.target.result;
+                saveAll();
+            };
+            r.readAsDataURL(f);
+        };
+
+        const batteryLevel = ref(100);
+        const fullDate = computed(() => {
+            const d = now.value;
+            const weekMap = ['日', '一', '二', '三', '四', '五', '六'];
+            return `${d.getMonth()+1}月${d.getDate()}日 星期${weekMap[d.getDay()]}`;
+        });
+        
+        onMounted(async () => {
+            if (navigator.getBattery) {
+                try {
+                    const battery = await navigator.getBattery();
+                    batteryLevel.value = Math.floor(battery.level * 100);
+                    battery.addEventListener('levelchange', () => { batteryLevel.value = Math.floor(battery.level * 100); });
+                } catch(e) {}
+            }
+        });
         return {
             currentApp, currentTime, currentDate, openApp, goHome, store, activeTab, currentChatId, 
             showAddRoleModal, showRoleOptionModal, showChatDetails, showStickerMenu, showChatEmoji, emojiTab, editingChat, diaryTab, calendarDate, calendarGrid, changeMonth, randomMemory,
@@ -1460,5 +1477,6 @@ createApp({
 </body>
 
 </html>
+
 
 
