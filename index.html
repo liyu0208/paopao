@@ -1406,21 +1406,17 @@ createApp({
             }
         };
     // === 桌面美化相关逻辑 ===
-        
-        // 1. 定义手绘风格图标 (SVG 路径)
+    // === 桌面美化相关逻辑 (请确保复制完整) ===
         const customIcons = {
             blueFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,50 Q30,30 50,30 Q70,30 80,50 Q70,70 50,70 Q30,70 20,50 Z M80,50 L90,40 M80,50 L90,60 M35,45 A 2 2 0 1 1 35,46" fill="#e0f2fe" opacity="0.9"/></svg>`,
             bubbleFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M25,55 Q35,35 55,35 Q75,35 85,55 Q75,75 55,75 Q35,75 25,55 Z M85,55 L95,45 M85,55 L95,65 M40,50 A 2 2 0 1 1 40,51" fill="#fce7f3"/><circle cx="20" cy="40" r="3" stroke="#3b82f6"/><circle cx="12" cy="30" r="5" stroke="#3b82f6"/></svg>`,
             book: `<svg viewBox="0 0 100 100" fill="none" stroke="#8b5e3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,20 L40,20 Q50,20 50,30 L50,80 Q50,70 40,70 L20,70 Q10,70 10,60 L10,30 Q10,20 20,20 Z M50,30 Q50,20 60,20 L80,20 Q90,20 90,30 L90,60 Q90,70 80,70 L60,70 Q50,70 50,80" fill="#fffbf0"/><line x1="50" y1="30" x2="50" y2="80"/></svg>`
         };
 
-        // 2. 桌面挂件图片上传
         const handleWidgetImage = (e) => {
             const f = e.target.files[0]; if(!f) return;
             const r = new FileReader();
             r.onload = (ev) => { 
-                // 我们把图片存到 store.user.widgetImg 里，借用一下 user 对象或者新开字段
-                // 为了方便，这里我们临时存到 store.theme.widgetImg (如果没有就动态加一个)
                 if(!store.theme) store.theme = {};
                 store.theme.widgetImg = ev.target.result;
                 saveAll();
@@ -1428,7 +1424,6 @@ createApp({
             r.readAsDataURL(f);
         };
 
-        // 3. 电池和日期逻辑
         const batteryLevel = ref(100);
         const fullDate = computed(() => {
             const d = now.value;
@@ -1437,8 +1432,7 @@ createApp({
         });
 
         onMounted(async () => {
-            // ...原有逻辑...
-            // 获取电池电量 (部分浏览器支持)
+             // 电池电量逻辑
             if (navigator.getBattery) {
                 try {
                     const battery = await navigator.getBattery();
@@ -1466,4 +1460,5 @@ createApp({
 </body>
 
 </html>
+
 
