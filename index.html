@@ -15,17 +15,8 @@ body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden;
 .hidden-input { display: none !important; }
 /* === 壁纸 === */
 .wallpaper-bg {
-    background: url('https://images.unsplash.com/photo-1621256627040-39832205566d?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
-    background-size: cover;
-    /* 增加一个伪元素让图标更清晰 */
-    position: relative;
-}
-.wallpaper-bg::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.3); /* 这一层半透明白膜让你的手绘图标更显眼 */
-    pointer-events: none;
+background: url('https://images.unsplash.com/photo-1621256627040-39832205566d?q=80&w=1000&auto=format&fit=crop') no-repeat center center;
+background-size: cover;
 }
 /* === 布局辅助 === */
 .app-layout { display: flex; flex-direction: column; height: 100%; width: 100%; background-color: #f8fafc; }
@@ -102,70 +93,66 @@ background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1
     <input ref="userAvatarInput" type="file" accept="image/*" class="hidden-input" @change="e=>updateChatAvatar(e, 'user')">
     <input ref="userPersonaInput" type="file" accept=".txt,.json" class="hidden-input" @change="importUserPersona">
 
-    <!-- 顶部系统栏 -->
-    <div v-if="currentApp === 'home' || (currentApp === 'chatApp' && currentChatId)" class="fixed top-0 w-full z-[100] flex justify-between px-6 py-2 text-xs font-bold text-slate-600" style="padding-top: max(5px, env(safe-area-inset-top));">
-        <span>{{ currentTime }}</span>
-        <div class="flex gap-2"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></div>
+<!-- 顶部系统栏 -->
+<div v-if="currentApp === 'home' || (currentApp === 'chatApp' && currentChatId)" 
+     class="fixed top-0 w-full z-[100] flex justify-between px-6 py-2 text-xs font-bold text-slate-600"
+     style="padding-top: max(5px, env(safe-area-inset-top));">
+    <span>{{ currentTime }}</span>
+    <div class="flex gap-2 items-center">
+        <i class="fas fa-signal"></i>
+        <i class="fas fa-wifi"></i>
+        <!-- 自定义电池组件 -->
+        <div class="flex items-center">
+            <div class="relative w-8 h-3.5 border border-slate-600 rounded-[3px] p-[1px] flex items-center ml-1">
+                <!-- 电量进度条 -->
+                <div class="h-full bg-slate-600 transition-all duration-500" :style="{width: batteryLevel + '%'}"></div>
+                <!-- 电量文字 (绝对定位在中间) -->
+                <div class="absolute inset-0 flex items-center justify-center text-[8px] font-bold scale-90" 
+                     :class="batteryLevel > 50 ? 'text-white' : 'text-slate-800'">
+                    {{ batteryLevel }}
+                </div>
+            </div>
+            <!-- 电池头 -->
+            <div class="w-[2px] h-1.5 bg-slate-600 rounded-r-[1px]"></div>
+        </div>
     </div>
-
-    <!-- ================= 1. 桌面 (新布局) ================= -->
-        <div v-if="currentApp === 'home'" class="wallpaper-bg flex flex-col h-full relative text-[#333]">
-            <!-- 1. 顶部状态栏 (按照手绘图布局) -->
-            <div class="pt-2 px-6 flex justify-between items-start z-20" style="padding-top: max(10px, env(safe-area-inset-top));">
-                <!-- 左侧：大时间 + 日期 -->
-                <div class="flex flex-col">
-                    <div class="text-5xl font-thin tracking-tighter leading-none text-slate-700 font-[Helvetica]">{{ currentTime }}</div>
-                    <div class="text-sm font-bold text-slate-500 mt-1 pl-1 tracking-widest">{{ fullDate }}</div>
-                </div>
-                <!-- 右侧：信号与电池 -->
-                <div class="flex items-center gap-2 text-slate-600 mt-2">
-                    <i class="fas fa-signal text-xs"></i>
-                    <i class="fas fa-wifi text-xs"></i>
-                    <!-- 手绘图里的电池：数字在电池里面 -->
-                    <div class="border border-slate-600 rounded px-1 h-4 flex items-center justify-center text-[10px] font-bold min-w-[30px] relative ml-1">
-                        {{ batteryLevel }}%
-                        <div class="absolute -right-[3px] top-[3px] h-2 w-[2px] bg-slate-600 rounded-r"></div>
+</div>
+    <!-- ================= 1. 桌面 ================= -->
+    <div v-if="currentApp === 'home'" class="wallpaper-bg" style="display:flex; flex-direction:column; height:100%;">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between; padding-bottom:40px; padding-top:15vh;">
+            <div class="text-center">
+                <div class="text-7xl font-thin tracking-tighter text-slate-600">{{ currentTime }}</div>
+                <div class="text-lg opacity-80 mt-2 font-medium text-slate-500">{{ currentDate }}</div>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:2rem; width:100%; padding:0 2rem; margin-top:3rem;">
+                    <div @click="openApp('chatApp')" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <div class="app-icon bg-gradient-to-b from-green-400 to-green-500"><i class="fas fa-comment-dots"></i></div>
+                        <span class="app-name">Chat</span>
+                    </div>
+                    <div @click="openApp('role')" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <div class="app-icon bg-gradient-to-b from-blue-400 to-blue-500"><i class="fas fa-user-astronaut"></i></div>
+                        <span class="app-name">角色</span>
+                    </div>
+                    <div @click="openApp('diary')" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <div class="app-icon bg-gradient-to-b from-amber-400 to-orange-400"><i class="fas fa-book-open"></i></div>
+                        <span class="app-name">日记</span>
                     </div>
                 </div>
             </div>
-
-            <!-- 2. 中间 APP 布局 (Grid 布局) -->
-            <div class="flex-1 px-6 pt-8 pb-4 flex flex-col z-10">
-                <div class="grid grid-cols-2 gap-4 h-64">
-                    
-                    <!-- 左侧：大相册挂件 (占 2 行) -->
-                    <div class="row-span-2 relative group rounded-3xl overflow-hidden shadow-lg border-4 border-white transform transition active:scale-95 bg-[#fff8f0]">
-                        <!-- 如果没有图，显示默认的猫咪吃鱼占位 -->
-                        <div v-if="!store.theme?.widgetImg" class="w-full h-full flex flex-col items-center justify-center text-slate-300" @click="$refs.widgetInput.click()">
-                            <i class="fas fa-cat text-4xl mb-2"></i>
-                            <span class="text-xs font-bold">插入图片</span>
-                        </div>
-                        <!-- 如果有图，显示图片 -->
-                        <img v-else :src="store.theme.widgetImg" class="w-full h-full object-cover" @click="$refs.widgetInput.click()">
-                        <!-- 隐藏的文件输入框 -->
-                        <input ref="widgetInput" type="file" accept="image/*" class="hidden-input" @change="handleWidgetImage">
+            <div class="dock-wrapper">
+                <div class="dock-container">
+                    <div @click="openApp('world')" style="display:flex; flex-direction:column; align-items:center;">
+                        <div class="app-icon !w-14 !h-14 !text-2xl bg-gradient-to-b from-purple-400 to-purple-600"><i class="fas fa-globe-asia"></i></div>
                     </div>
-
-                  
-                    <!-- 右边留空或者以后放别的 -->
-                </div>
-            </div>
-
-            <!-- 3. 底部 Dock 栏 (保持不变，只是美化一下透明度) -->
-            <div class="dock-wrapper z-20">
-                <div class="dock-container !bg-white/40 !backdrop-blur-xl !border-white/30 !shadow-none">
-                    <div @click="openApp('world')" class="flex flex-col items-center transition active:scale-90">
-                         <div class="app-icon !w-12 !h-12 !text-xl bg-gradient-to-b from-purple-400 to-purple-500 shadow-md"><i class="fas fa-globe-asia"></i></div>
+                    <div @click="openApp('api')" style="display:flex; flex-direction:column; align-items:center;">
+                        <div class="app-icon !w-14 !h-14 !text-2xl bg-gradient-to-b from-slate-500 to-slate-700"><i class="fas fa-sliders-h"></i></div>
                     </div>
-                    <div @click="openApp('api')" class="flex flex-col items-center transition active:scale-90">
-                        <div class="app-icon !w-12 !h-12 !text-xl bg-gradient-to-b from-slate-500 to-slate-600 shadow-md"><i class="fas fa-sliders-h"></i></div>
-                    </div>
-                    <div @click="openApp('theme')" class="flex flex-col items-center transition active:scale-90">
-                        <div class="app-icon !w-12 !h-12 !text-xl bg-gradient-to-b from-pink-400 to-pink-500 shadow-md"><i class="fas fa-paint-brush"></i></div>
+                    <div @click="openApp('theme')" style="display:flex; flex-direction:column; align-items:center;">
+                        <div class="app-icon !w-14 !h-14 !text-2xl bg-gradient-to-b from-pink-400 to-pink-600"><i class="fas fa-paint-brush"></i></div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
     <!-- ================= 3. Chat App ================= -->
     <div v-else-if="currentApp === 'chatApp'" class="app-layout">
@@ -341,26 +328,78 @@ background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1
                     <button @click="showChatEmoji=!showChatEmoji" class="hover:bg-gray-200 p-2 rounded-full transition" :class="{'text-orange-500': showChatEmoji}"><i class="far fa-smile"></i></button>
                     <button @click="showToast('功能开发中', 'info')" class="hover:bg-gray-200 p-2 rounded-full transition"><i class="fas fa-plus-circle"></i></button>
                 </div>
-                <div v-if="showChatEmoji" class="h-56 bg-gray-100 border-t flex flex-col">
-                    <div class="flex-1 overflow-y-auto p-2">
-                        <div v-if="emojiTab === 'default'" class="grid grid-cols-8 gap-2">
-                            <div v-for="e in defaultEmojis" @click="inputText+=e" class="text-center text-xl cursor-pointer hover:bg-white rounded py-1">{{e}}</div>
-                        </div>
-                        <div v-else-if="emojiTab === 'custom'">
-                            <div v-if="store.customStickers.length > 0" class="grid grid-cols-4 gap-2">
-                                <img v-for="s in store.customStickers" :src="s" class="w-16 h-16 object-cover rounded bg-white shadow-sm cursor-pointer" @click="sendSticker(s)">
-                            </div>
-                            <div v-else class="text-center text-gray-400 text-sm mt-8">暂无收藏，点击右下角 + 添加</div>
-                        </div>
-                    </div>
-                    <div class="h-10 bg-white border-t flex items-center px-4 justify-between">
-                        <div class="flex gap-4">
-                            <button @click="emojiTab='default'" class="text-sm px-3 py-1 rounded-full font-bold" :class="emojiTab==='default'?'bg-blue-100 text-blue-600':'text-gray-400'">☺ 默认</button>
-                            <button @click="emojiTab='custom'" class="text-sm px-3 py-1 rounded-full font-bold" :class="emojiTab==='custom'?'bg-red-100 text-red-600':'text-gray-400'">♥ 收藏</button>
-                        </div>
-                        <button @click="$refs.globalStickerInput.click()" class="text-xl text-gray-500 hover:text-blue-500 px-2"><i class="fas fa-plus"></i></button>
-                    </div>
+<div v-if="showChatEmoji" class="h-64 bg-white border-t flex flex-col transition-all duration-300">
+    <!-- 1. 顶部：分组 Tab 栏 -->
+    <div class="flex items-center px-2 py-2 gap-2 overflow-x-auto bg-gray-50 border-b border-gray-200 hide-scrollbar">
+        <!-- 系统默认 -->
+        <button @click="emojiTab='default'" 
+                class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all border"
+                :class="emojiTab==='default' ? 'bg-blue-500 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'">
+            ☺ 系统
+        </button>
+        <!-- 收藏夹 -->
+        <button @click="emojiTab='favorites'" 
+                class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all border"
+                :class="emojiTab==='favorites' ? 'bg-red-500 text-white border-red-600' : 'bg-white text-gray-500 border-gray-200'">
+            ♥ 收藏
+        </button>
+        <!-- 自定义分组渲染 -->
+        <div v-for="(group, idx) in store.stickerGroups" :key="idx" class="relative group shrink-0">
+            <button @click="emojiTab='group-'+idx" 
+                    class="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all border"
+                    :class="emojiTab==='group-'+idx ? 'bg-purple-500 text-white border-purple-600' : 'bg-white text-gray-500 border-gray-200'">
+                {{ group.name }}
+            </button>
+            <!-- 长按或点击删除分组的小红点 -->
+            <div v-if="emojiTab==='group-'+idx" @click.stop="deleteStickerGroup(idx)" 
+                 class="absolute -top-1 -right-1 bg-gray-700 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] cursor-pointer shadow-sm border border-white z-10">×</div>
+        </div>
+        <!-- 新建分组按钮 -->
+        <button @click="createNewStickerGroup" class="w-7 h-7 rounded-full bg-gray-200 text-gray-500 hover:bg-blue-100 hover:text-blue-500 flex items-center justify-center shrink-0 border border-transparent transition-colors">
+            <i class="fas fa-plus text-xs"></i>
+        </button>
+    </div>
+
+    <!-- 2. 内容区域 -->
+    <div class="flex-1 overflow-y-auto p-3 bg-[#f8fafc]">
+        
+        <!-- A. 默认 Emoji -->
+        <div v-if="emojiTab === 'default'" class="grid grid-cols-8 gap-2">
+            <div v-for="e in defaultEmojis" @click="inputText+=e" class="text-center text-xl cursor-pointer hover:bg-gray-200 rounded py-1 transition">{{e}}</div>
+        </div>
+
+        <!-- B. 收藏夹 (原 customStickers) -->
+        <div v-else-if="emojiTab === 'favorites'" class="grid grid-cols-5 gap-3">
+            <!-- 添加按钮 -->
+            <div @click="openStickerUploadMenu('favorites')" class="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-blue-400 hover:text-blue-500 bg-white">
+                <i class="fas fa-plus mb-1"></i><span class="text-[10px]">添加</span>
+            </div>
+            <!-- 图片列表 -->
+            <div v-for="(s, i) in store.customStickers" :key="i" class="aspect-square relative group">
+                <img :src="s" class="w-full h-full object-cover rounded-xl bg-white shadow-sm cursor-pointer border border-gray-100" @click="sendSticker(s)">
+                <button @click.stop="store.customStickers.splice(i,1);saveAll()" class="absolute -top-1 -right-1 bg-red-500 text-white w-5 h-5 rounded-full text-xs shadow-md hidden group-hover:block">×</button>
+            </div>
+            <div v-if="store.customStickers.length===0" class="col-span-4 text-gray-400 text-xs flex items-center ml-2">暂无收藏，点击加号添加</div>
+        </div>
+
+        <!-- C. 自定义分组内容 -->
+        <template v-for="(group, idx) in store.stickerGroups" :key="idx">
+            <div v-if="emojiTab === 'group-'+idx" class="grid grid-cols-4 gap-3">
+                <!-- 添加按钮 -->
+                <div @click="openStickerUploadMenu(idx)" class="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-purple-400 hover:text-purple-500 bg-white">
+                    <i class="fas fa-image text-lg mb-1"></i><span class="text-[10px]">传图/URL</span>
                 </div>
+                <!-- 图片列表 -->
+                <div v-for="(img, imgIdx) in group.list" :key="imgIdx" class="aspect-square relative group">
+                    <img :src="img" class="w-full h-full object-cover rounded-xl bg-white shadow-sm cursor-pointer border border-gray-100" @click="sendSticker(img)">
+                    <button @click.stop="group.list.splice(imgIdx, 1); saveAll();" class="absolute -top-1 -right-1 bg-black/50 text-white w-5 h-5 rounded-full text-xs backdrop-blur-sm">×</button>
+                </div>
+            </div>
+        </template>
+    </div>
+    <!-- 隐藏的文件输入框，用于处理上传 -->
+    <input ref="stickerFileInput" type="file" accept="image/*" class="hidden-input" @change="handleStickerFile">
+</div>
             </footer>
         </div>
         <!-- Tab Bar -->
@@ -388,39 +427,6 @@ background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1
                     <div v-if="modelList.length > 0" class="relative">
                         <select v-model="store.api.model" class="api-input appearance-none"><option v-for="m in modelList" :value="m.id">{{m.id}}</option></select>
                         <div class="absolute right-3 top-3 text-gray-500 pointer-events-none"><i class="fas fa-chevron-down"></i></div>
-                   <!-- 新增：功能控制区 -->
-            <div class="mt-4 pt-4 border-t border-slate-200">
-                <div class="api-label mb-2">实验室功能</div>
-                <div class="bg-white p-3 rounded-xl border border-gray-200 flex justify-between items-center shadow-sm">
-                    <div>
-                        <div class="font-bold text-gray-700 text-sm">自动调侃 (Beta)</div>
-                        <div class="text-[10px] text-gray-400">AI 角色随机主动发起聊天</div>
-                    </div>
-                    <div class="toggle-switch" :class="{active: store.enableAutoChat}" @click="store.enableAutoChat = !store.enableAutoChat">
-                        <div class="toggle-circle"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-4 pt-4 border-t border-slate-200">
-                <div class="api-label mb-2">数据管理</div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button @click="exportAllData" class="bg-blue-50 text-blue-600 py-3 rounded-xl font-bold text-sm border border-blue-100 flex flex-col items-center justify-center gap-1 active:scale-95 transition">
-                        <i class="fas fa-file-export text-lg"></i>
-                        <span>备份全部数据</span>
-                    </button>
-                    <div class="relative">
-                        <input type="file" accept=".json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" @change="importAllData">
-                        <button class="w-full h-full bg-orange-50 text-orange-600 py-3 rounded-xl font-bold text-sm border border-orange-100 flex flex-col items-center justify-center gap-1">
-                            <i class="fas fa-file-import text-lg"></i>
-                            <span>恢复备份</span>
-                        </button>
-                    </div>
-                </div>
-                <button @click="resetAllData" class="w-full mt-3 bg-red-50 text-red-500 py-3 rounded-xl font-bold text-sm border border-red-100 flex items-center justify-center gap-2 active:scale-95 transition">
-                    <i class="fas fa-trash-alt"></i> 清除所有数据 (重置 APP)
-                </button>
-            </div>
                     </div>
                     <input v-else v-model="store.api.model" class="api-input">
                 </div>
@@ -461,36 +467,71 @@ background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1
             <div class="w-8"></div>
         </header>
 
-        <!-- 1. 记录板块 -->
-        <div v-if="diaryTab === 'record'" class="app-content p-4 flex flex-col">
-            <div class="bg-white rounded-2xl shadow-sm border border-[#e6e0d0] p-4 mb-4 flex-1 flex flex-col">
-                <div class="text-xs text-gray-400 mb-2 flex justify-between">
-                    <span>{{ currentDate }} {{ currentTime }}</span>
-                    <i class="fas fa-cloud-sun text-orange-300"></i>
-                </div>
-                <textarea v-model="diaryInput" class="w-full flex-1 resize-none outline-none text-gray-700 leading-relaxed bg-transparent placeholder-gray-300" placeholder="记录今天发生的美好..."></textarea>
-                <div v-if="diaryImages.length > 0" class="flex gap-2 mt-4 overflow-x-auto pb-2">
-                    <div v-for="(img, idx) in diaryImages" :key="idx" class="w-20 h-20 shrink-0 rounded-lg overflow-hidden relative group">
-                        <img :src="img" class="w-full h-full object-cover">
-                        <button @click="diaryImages.splice(idx, 1)" class="absolute top-1 right-1 bg-black/50 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"><i class="fas fa-times"></i></button>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
-                    <div class="flex gap-4 text-[#8b5e3c] text-lg">
-                        <button @click="$refs.globalDiaryImgInput.click()"><i class="far fa-image"></i></button>
-                        <button @click="showToast('功能开发中...', 'info')"><i class="fas fa-microphone"></i></button>
-                    </div>
-                    <button @click="saveDiary" class="bg-[#8b5e3c] text-white px-6 py-2 rounded-full text-sm font-bold shadow-md active:scale-95 transition">保存日记</button>
-                </div>
+<!-- 1. 记录板块 (时间轴 & 自定义时间) -->
+<div v-if="diaryTab === 'record'" class="app-content p-4 flex flex-col h-full overflow-hidden">
+    <!-- 输入卡片 -->
+    <div class="bg-white rounded-2xl shadow-sm border border-[#e6e0d0] p-4 mb-4 shrink-0 flex flex-col">
+        <!-- 顶部工具栏：日期时间 + 天气 -->
+        <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
+            <div class="flex gap-2 items-center">
+                <input type="date" v-model="diaryDateInput" class="text-xs font-bold text-gray-600 bg-gray-50 rounded px-2 py-1 outline-none border border-transparent focus:border-blue-300 transition">
+                <input type="time" v-model="diaryTimeInput" class="text-xs font-bold text-gray-600 bg-gray-50 rounded px-2 py-1 outline-none border border-transparent focus:border-blue-300 transition">
             </div>
-            <div v-if="store.diaryList.length > 0" class="px-2">
-                <div class="text-xs font-bold text-[#8b5e3c] mb-2 opacity-50">最近回顾</div>
-                <div class="bg-white/60 p-4 rounded-xl border border-[#e6e0d0] text-sm text-gray-600 truncate">
-                    {{ store.diaryList[0].content }}
+            <button @click="toggleWeather" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100 transition active:scale-90">
+                <i :class="[weatherMap[diaryWeather].icon, weatherMap[diaryWeather].color, 'text-lg transition-transform']"></i>
+            </button>
+        </div>
+
+        <textarea v-model="diaryInput" class="w-full h-24 flex-1 resize-none outline-none text-gray-700 leading-relaxed bg-transparent placeholder-gray-300 text-sm" placeholder="记录今天发生的美好..."></textarea>
+        
+        <div v-if="diaryImages.length > 0" class="flex gap-2 mt-2 overflow-x-auto pb-2">
+            <div v-for="(img, idx) in diaryImages" :key="idx" class="w-16 h-16 shrink-0 rounded-lg overflow-hidden relative group">
+                <img :src="img" class="w-full h-full object-cover">
+                <button @click="diaryImages.splice(idx, 1)" class="absolute top-0 right-0 bg-black/50 text-white w-5 h-5 flex items-center justify-center text-xs"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        
+        <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+            <div class="flex gap-4 text-[#8b5e3c] text-lg">
+                <button @click="$refs.globalDiaryImgInput.click()"><i class="far fa-image"></i></button>
+                <button @click="showToast('语音功能暂未开放', 'info')"><i class="fas fa-microphone"></i></button>
+            </div>
+            <button @click="saveDiary" class="bg-[#8b5e3c] text-white px-6 py-2 rounded-full text-sm font-bold shadow-md active:scale-95 transition">发布</button>
+        </div>
+    </div>
+
+    <!-- 最近回顾：时间轴 -->
+    <div class="flex-1 overflow-hidden flex flex-col">
+        <div class="text-xs font-bold text-[#8b5e3c] mb-2 opacity-50 px-2 flex justify-between">
+            <span>时光轴</span>
+            <span>{{ store.diaryList.length }} 篇</span>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto px-2 pb-20 space-y-4">
+            <div v-if="store.diaryList.length === 0" class="text-center text-gray-400 text-xs py-10">暂无记录</div>
+            
+            <div v-for="item in store.diaryList" :key="item.id" class="flex gap-3 relative">
+                <!-- 左侧轴线 -->
+                <div class="flex flex-col items-center w-6 shrink-0 pt-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-[#8b5e3c] z-10"></div>
+                    <div class="w-0.5 flex-1 bg-[#e6e0d0] -mt-1 opacity-50"></div>
+                </div>
+                <!-- 内容卡片 -->
+                <div @click="openDiaryDetail(item)" class="flex-1 bg-white/70 backdrop-blur-sm p-3 rounded-xl border border-[#e6e0d0] text-sm text-gray-600 shadow-sm active:bg-white transition cursor-pointer">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-bold text-[#8b5e3c]">{{ item.date.split(' ')[0] }}</span>
+                        <i v-if="item.weather && weatherMap[item.weather]" :class="[weatherMap[item.weather].icon, weatherMap[item.weather].color, 'text-xs']"></i>
+                    </div>
+                    <p class="truncate line-clamp-2 opacity-80">{{ item.content }}</p>
+                    <div v-if="item.images && item.images.length" class="mt-2 flex gap-1">
+                        <img v-for="(img, i) in item.images.slice(0,3)" :key="i" :src="img" class="w-8 h-8 rounded object-cover border border-white shadow-sm">
+                        <div v-if="item.images.length > 3" class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-400">+{{item.images.length-3}}</div>
+                    </div>
                 </div>
             </div>
         </div>
-
+    </div>
+</div>
         <!-- 2. 日历板块 -->
         <div v-else-if="diaryTab === 'calendar'" class="app-content p-4 flex flex-col">
             <div class="flex justify-between items-center mb-6 px-4">
@@ -818,41 +859,217 @@ createApp({
         const showChatEmoji = ref(false);
         const emojiTab = ref('default'); 
         const editingChat = reactive({});
+// === 新增逻辑开始 ===
+// 1. 电量逻辑
+const batteryLevel = ref(100);
+const stickerFileInput = ref(null);
+const currentUploadTarget = ref(null); // 记录当前正在往哪个组传图
 
-        // === 新增：日记 App 逻辑 ===
-        const diaryTab = ref('record'); // 当前选中的 Tab: 'record', 'calendar', 'company'
-        const calendarDate = ref(new Date()); // 日历当前显示的月份
+// 尝试获取真实电量
+if (navigator.getBattery) {
+    navigator.getBattery().then(b => {
+        batteryLevel.value = Math.floor(b.level * 100);
+        b.addEventListener('levelchange', () => { batteryLevel.value = Math.floor(b.level * 100); });
+    });
+}
 
-        // 生成日历数据
-        const calendarGrid = computed(() => {
-            const year = calendarDate.value.getFullYear();
-            const month = calendarDate.value.getMonth();
-            const firstDay = new Date(year, month, 1).getDay(); // 当月第一天是周几
-            const daysInMonth = new Date(year, month + 1, 0).getDate(); // 当月总天数
-            
-            const grid = [];
-            // 填充前面的空白 (上个月)
-            for(let i = 0; i < firstDay; i++) grid.push({ day: '', type: 'empty' });
-            // 填充当月天数
-            for(let i = 1; i <= daysInMonth; i++) {
-                // 查找这一天是否有日记
-                const dateStr = `${year}/${month+1}/${i}`; // 简单匹配格式，实际需根据存储格式调整
-                // 利用日记的时间戳(id)来判断日期更准确
-                const entry = store.diaryList.find(d => {
-                    const dDate = new Date(d.id); 
-                    return dDate.getFullYear() === year && dDate.getMonth() === month && dDate.getDate() === i;
-                });
-                grid.push({ day: i, type: 'day', entry: entry });
+// 2. 表情分组管理
+const createNewStickerGroup = () => {
+    const name = prompt("请输入分组名称 (如: 哆啦A梦):");
+    if (name) {
+        if (!store.stickerGroups) store.stickerGroups = [];
+        store.stickerGroups.push({ name: name, list: [] });
+        saveAll();
+        emojiTab.value = 'group-' + (store.stickerGroups.length - 1); // 自动切过去
+    }
+};
+
+const deleteStickerGroup = (idx) => {
+    if(confirm('删除此分组及其包含的所有表情？')) {
+        store.stickerGroups.splice(idx, 1);
+        emojiTab.value = 'default';
+        saveAll();
+    }
+};
+
+// 3. 自定义表情上传 (支持本地或URL)
+const openStickerUploadMenu = (target) => {
+    currentUploadTarget.value = target; // target 可能是 'favorites' 或 数字索引
+    // 简单的交互：询问是 URL 还是本地
+    const isUrl = confirm("点击“确定”输入图片链接(URL)\n点击“取消”上传本地图片");
+    if (isUrl) {
+        const url = prompt("请输入图片链接 (http://...):");
+        if (url) addStickerToData(url);
+    } else {
+        // 触发文件选择
+        if(stickerFileInput.value) stickerFileInput.value.click();
+    }
+};
+
+// 新的、带压缩功能的 handleStickerFile 函数
+const handleStickerFile = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+
+    const r = new FileReader();
+    r.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+            // --- 压缩逻辑核心 ---
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 300; // 设置表情包最大宽度
+            const MAX_HEIGHT = 300; // 设置最大高度
+
+            let width = img.width;
+            let height = img.height;
+
+            // 按比例缩放
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
             }
-            return grid;
-        });
+            canvas.width = width;
+            canvas.height = height;
 
-        // 切换月份
-        const changeMonth = (delta) => {
-            calendarDate.value = new Date(calendarDate.value.setMonth(calendarDate.value.getMonth() + delta));
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // 将压缩后的图像转为 Data URL，0.7 代表 70% 的质量
+            const compressedSrc = canvas.toDataURL('image/jpeg', 0.7); 
+            
+            // 使用压缩后的图片源
+            addStickerToData(compressedSrc);
         };
+        img.src = ev.target.result; // 加载原始图片
+    };
+    r.readAsDataURL(f);
+    e.target.value = ''; // 重置
+};
 
-        // 陪伴板块：时光胶囊 (随机一条日记)
+const addStickerToData = (src) => {
+    if (currentUploadTarget.value === 'favorites') {
+        store.customStickers.push(src);
+    } else {
+        const idx = currentUploadTarget.value;
+        if (store.stickerGroups && store.stickerGroups[idx]) {
+            store.stickerGroups[idx].list.push(src);
+        }
+    }
+    saveAll();
+    showToast('添加成功');
+};
+// === 新增逻辑结束 ===
+
+// === 新增：日记 App 逻辑 ===
+const diaryTab = ref('record');
+
+// 1. 初始化日期、时间、天气变量
+const dNow = new Date(); // 改个名字叫 dNow
+const diaryDateInput = ref(dNow.getFullYear() + '-' + String(dNow.getMonth() + 1).padStart(2, '0') + '-' + String(dNow.getDate()).padStart(2, '0'));
+const diaryTimeInput = ref(String(dNow.getHours()).padStart(2, '0') + ':' + String(dNow.getMinutes()).padStart(2, '0'));
+const diaryWeather = ref('sunny'); 
+
+// 天气配置
+const weatherMap = {
+    'sunny': { icon: 'fas fa-sun', color: 'text-orange-400' },
+    'cloudy': { icon: 'fas fa-cloud', color: 'text-gray-400' },
+    'rainy': { icon: 'fas fa-cloud-rain', color: 'text-blue-400' },
+    'snowy': { icon: 'fas fa-snowflake', color: 'text-blue-200' },
+};
+
+// 切换天气
+const toggleWeather = () => {
+    const types = Object.keys(weatherMap);
+    const currentIndex = types.indexOf(diaryWeather.value);
+    const nextIndex = (currentIndex + 1) % types.length;
+    diaryWeather.value = types[nextIndex];
+};
+
+// 日历当前显示的月份
+const calendarDate = ref(new Date()); 
+
+// 控制详情弹窗
+const selectedDiaryEntry = ref(null);
+const openDiaryDetail = (entry) => {
+    selectedDiaryEntry.value = entry;
+};
+const deleteDiaryEntry = (id) => {
+    if(confirm('确定删除这条日记吗？')) {
+        store.diaryList = store.diaryList.filter(d => d.id !== id);
+        selectedDiaryEntry.value = null;
+        saveAll();
+        showToast('已删除');
+    }
+};
+
+// 生成日历数据 (修改版：支持图片预览和点击)
+const calendarGrid = computed(() => {
+    const year = calendarDate.value.getFullYear();
+    const month = calendarDate.value.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const grid = [];
+    // 填充空白
+    for(let i = 0; i < firstDay; i++) grid.push({ day: '', type: 'empty' });
+    
+    // 填充日期
+    for(let i = 1; i <= daysInMonth; i++) {
+        // 查找当天的日记 (匹配年月日字符串，更精准)
+        // 注意：这里假设 store.diaryList 里的 date 格式包含日期信息，或者我们使用 rawDate
+        const currentStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        
+        const entry = store.diaryList.find(d => {
+            // 如果存了 rawDate (YYYY-MM-DDTHH:mm) 则用 rawDate 匹配，否则尝试解析 id
+            if(d.rawDate) return d.rawDate.startsWith(currentStr);
+            const dDate = new Date(d.id);
+            return dDate.getFullYear() === year && dDate.getMonth() === month && dDate.getDate() === i;
+        });
+        
+        grid.push({ day: i, type: 'day', entry: entry });
+    }
+    return grid;
+});
+
+// 保存日记 (修改版：支持自定义时间)
+const saveDiary = () => {
+    if(!diaryInput.value.trim() && diaryImages.value.length===0) return;
+    
+    // 组合日期和时间
+    const dateTimeStr = `${diaryDateInput.value}T${diaryTimeInput.value}`;
+    const customDate = new Date(dateTimeStr);
+    
+    const newEntry = { 
+        id: customDate.getTime(), // 使用自定义时间的时间戳作为ID
+        rawDate: dateTimeStr,     // 保存原始ISO字符串方便排序匹配
+        date: customDate.toLocaleString(), // 显示用字符串
+        content: diaryInput.value, 
+        images: [...diaryImages.value], 
+        weather: diaryWeather.value,
+        aiReply: '' 
+    };
+
+    store.diaryList.unshift(newEntry);
+    
+    // 简单按时间倒序重排一下，防止插队
+    store.diaryList.sort((a, b) => b.id - a.id);
+
+    diaryInput.value = ''; 
+    diaryImages.value = []; 
+    saveAll(); 
+    showToast('日记已发布');
+};
+
+const changeMonth = (delta) => {
+calendarDate.value = new Date(calendarDate.value.setMonth(calendarDate.value.getMonth() + delta));
+};
         const randomMemory = computed(() => {
             if (store.diaryList.length === 0) return null;
             // 简单搞个随机，实际可以使用更复杂的算法
@@ -948,8 +1165,7 @@ createApp({
         const diaryImages = ref([]);
         const showDiaryEmoji = ref(false);
 
-        presets: { api: [], world: [], theme: [], user: [] },
-            enableAutoChat: false // 新增：自动调侃开关
+        const store = reactive({
             activeChats: [], diaryList: [], 
             roleList: [], // 新增角色列表
             user: { name: '', prompt: '', avatar: '' },
@@ -958,6 +1174,7 @@ createApp({
             api: { baseUrl: 'https://api.openai.com/v1', key: '', model: 'gpt-3.5-turbo' },
             theme: { css: '' },
             customStickers: [],
+stickerGroups: [], // 新增：表情分组
             presets: { api: [], world: [], theme: [], user: [] }
         });
 
@@ -966,8 +1183,11 @@ createApp({
         const fetching = ref(false);
         const inputText = ref('');
         const isLoading = ref(false);
-        const defaultEmojis = ['😀','😂','🥰','😭','😡','👍','🙏','❤️','💔','👻','🔥','✨','🎁','👀','🐶','🐱'];
-
+const defaultEmojis = [
+    '😀', '😃', '😂', '🤣', '😊', '😍', '😘', '🤪', 
+    '😎', '😭', '😡', '👍', '👎', '🙏', '🤝', '❤️',
+    '🤡', '👻', '🎉', '✨', '🐶', '🐱', '💩', '(自定义)' // 在这里添加你想要的表情
+];
         setInterval(() => now.value = new Date(), 1000);
         const currentTime = computed(() => now.value.getHours().toString().padStart(2,'0') + ':' + now.value.getMinutes().toString().padStart(2,'0'));
         const currentDate = computed(() => (now.value.getMonth()+1)+'月 '+now.value.getDate()+'日');
@@ -988,6 +1208,7 @@ createApp({
                 if(s) {
                     const data = JSON.parse(s);
                     Object.assign(store, data);
+ if(!store.stickerGroups) store.stickerGroups = [];
                     if(!store.presets) store.presets = { api: [], world: [], theme: [], user: [] };
                     if(!store.presets.user) store.presets.user = [];
                     if(!store.user) store.user = { name:'', prompt:'', avatar:'' };
@@ -1250,14 +1471,8 @@ createApp({
         
         const addDiaryImage = (e) => { const f = e.target.files[0]; if(f) { const r=new FileReader(); r.onload=(ev)=>diaryImages.value.push(ev.target.result); r.readAsDataURL(f); } e.target.value=''; };
         
-        const saveDiary = () => { 
-            if(!diaryInput.value.trim() && diaryImages.value.length===0) return; 
-            store.diaryList.unshift({ id: Date.now(), content: diaryInput.value, images: [...diaryImages.value], date: new Date().toLocaleString(), aiReply: '' }); 
-            diaryInput.value = ''; diaryImages.value = []; saveAll(); showToast('日记已发布'); 
-        };
-        
-        const deleteDiary = (id) => { if(confirm('删除?')) { store.diaryList = store.diaryList.filter(d=>d.id!==id); saveAll(); showToast('已删除'); } };
-        
+ 
+ 
         const triggerDiaryAI = async (entry) => {
             if(!store.api.key) return showToast('Key?', 'error');
             try {
@@ -1302,181 +1517,26 @@ createApp({
             const idx=presetSelect[type]; if(idx===-1)return;
             if(confirm('Delete?')){store.presets[type].splice(idx,1); presetSelect[type]=-1; presetNameInput[type]=''; saveAll(); showToast('预设已删除');} 
         };
-    
-// === 新增功能：自动调侃与数据管理 ===
-        // 1. 自动调侃逻辑：每 30 秒检查一次
-        setInterval(() => {
-            if (!store.enableAutoChat || !store.api.key || store.roleList.length === 0) return;
-            // 10% 概率触发，且当前不在加载中
-            if (Math.random() < 0.1 && !isLoading.value) {
-                triggerAutoChat();
-            }
-        }, 30000);
 
-        const triggerAutoChat = async () => {
-            const randomRole = store.roleList[Math.floor(Math.random() * store.roleList.length)];
-            let chat = store.activeChats.find(c => c.name === randomRole.name);
-            
-            if (!chat) {
-                const newChat = {
-                    id: Date.now(), name: randomRole.name, avatar: randomRole.avatar, prompt: randomRole.prompt, 
-                    messages: [], lastMsg: '...', lastTime: currentTime.value, userAvatar: '', userPersona: '', 
-                    memoryLimit: 50, timeAware: false, autoSummary: false, worldBookId: null
-                };
-                store.activeChats.unshift(newChat);
-                chat = newChat;
-            }
-            
-            // 构造 AI 主动发言的指令
-            const sysPrompt = `Instruction: You are ${randomRole.name}. The user hasn't said anything recently. Please initiate a conversation proactively. Say something interesting, ask a question, or comment on the time/weather. Keep it short.`;
-            
-            try {
-                const res = await fetch(`${store.api.baseUrl.replace(/\/+$/,'')}/chat/completions`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${store.api.key}` }, 
-                    body: JSON.stringify({ 
-                        model: store.api.model, 
-                        messages: [
-                            {role: 'system', content: sysPrompt + `\n${randomRole.prompt}`},
-                            ...chat.messages.slice(-5).map(m => ({role: m.role, content: m.content}))
-                        ], 
-                        max_tokens: 100 
-                    })
-                });
-                const d = await res.json();
-                const text = d.choices[0].message.content;
-                chat.messages.push({ role: 'assistant', content: text });
-                chat.lastMsg = text;
-                chat.lastTime = currentTime.value;
-                saveAll();
-                showToast(`${randomRole.name} 找你聊天了！`);
-            } catch(e) { console.log('Auto chat failed', e); }
-        };
-
-        // 2. 导出全部数据
-        const exportAllData = () => {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(store));
-            const node = document.createElement('a'); 
-            node.setAttribute("href", dataStr);
-            node.setAttribute("download", `ChatOS_Backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(node); node.click(); node.remove();
-            showToast('备份已下载');
-        };
-
-        // 3. 导入全部数据
-        const importAllData = (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            if(!confirm('警告：导入将覆盖当前所有数据！建议先备份。确定继续吗？')) { e.target.value = ''; return; }
-            const r = new FileReader(); 
-            r.onload = (ev) => { try { 
-                const data = JSON.parse(ev.target.result); 
-                if(data.activeChats && data.roleList) {
-                    Object.assign(store, data); saveAll(); 
-                    showToast('数据恢复成功！即将刷新...');
-                    setTimeout(() => location.reload(), 1500);
-                } else { showToast('文件格式不对', 'error'); }
-            } catch(e){ showToast('解析失败', 'error'); } }; 
-            r.readAsText(f); e.target.value = '';
-        };
-
-        // 4. 重置所有数据
-        const resetAllData = () => {
-            if(confirm('高危操作：确定要清空所有聊天、角色和设置吗？此操作不可逆！')) {
-                if(confirm('再次确认：真的要清空吗？')) {
-                    localStorage.removeItem('aios_ultra_store');
-                    location.reload();
-                }
-            }
-        };
-    // === 桌面美化相关逻辑 ===
-    // === 桌面美化相关逻辑 (请确保复制完整) ===
-        const customIcons = {
-            blueFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,50 Q30,30 50,30 Q70,30 80,50 Q70,70 50,70 Q30,70 20,50 Z M80,50 L90,40 M80,50 L90,60 M35,45 A 2 2 0 1 1 35,46" fill="#e0f2fe" opacity="0.9"/></svg>`,
-            bubbleFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M25,55 Q35,35 55,35 Q75,35 85,55 Q75,75 55,75 Q35,75 25,55 Z M85,55 L95,45 M85,55 L95,65 M40,50 A 2 2 0 1 1 40,51" fill="#fce7f3"/><circle cx="20" cy="40" r="3" stroke="#3b82f6"/><circle cx="12" cy="30" r="5" stroke="#3b82f6"/></svg>`,
-            book: `<svg viewBox="0 0 100 100" fill="none" stroke="#8b5e3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,20 L40,20 Q50,20 50,30 L50,80 Q50,70 40,70 L20,70 Q10,70 10,60 L10,30 Q10,20 20,20 Z M50,30 Q50,20 60,20 L80,20 Q90,20 90,30 L90,60 Q90,70 80,70 L60,70 Q50,70 50,80" fill="#fffbf0"/><line x1="50" y1="30" x2="50" y2="80"/></svg>`
-        };
-
-        const handleWidgetImage = (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => { 
-                if(!store.theme) store.theme = {};
-                store.theme.widgetImg = ev.target.result;
-                saveAll();
-            };
-            r.readAsDataURL(f);
-        };
-
-        const batteryLevel = ref(100);
-        const fullDate = computed(() => {
-            const d = now.value;
-            const weekMap = ['日', '一', '二', '三', '四', '五', '六'];
-            return `${d.getMonth()+1}月${d.getDate()}日 星期${weekMap[d.getDay()]}`;
-        });
-
-        onMounted(async () => {
-             // 电池电量逻辑
-            if (navigator.getBattery) {
-                try {
-                    const battery = await navigator.getBattery();
-                    batteryLevel.value = Math.floor(battery.level * 100);
-                    battery.addEventListener('levelchange', () => { batteryLevel.value = Math.floor(battery.level * 100); });
-                } catch(e) {}
-            }
-        });
-    // === 桌面美化相关逻辑 (一定要复制完整，包括 const customIcons = { ) ===
-        
-        const customIcons = {  // <--- 这一行千万不能漏！！！
-            blueFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,50 Q30,30 50,30 Q70,30 80,50 Q70,70 50,70 Q30,70 20,50 Z M80,50 L90,40 M80,50 L90,60 M35,45 A 2 2 0 1 1 35,46" fill="#e0f2fe" opacity="0.9"/></svg>`,
-            bubbleFish: `<svg viewBox="0 0 100 100" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M25,55 Q35,35 55,35 Q75,35 85,55 Q75,75 55,75 Q35,75 25,55 Z M85,55 L95,45 M85,55 L95,65 M40,50 A 2 2 0 1 1 40,51" fill="#fce7f3"/><circle cx="20" cy="40" r="3" stroke="#3b82f6"/><circle cx="12" cy="30" r="5" stroke="#3b82f6"/></svg>`,
-            book: `<svg viewBox="0 0 100 100" fill="none" stroke="#8b5e3c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20,20 L40,20 Q50,20 50,30 L50,80 Q50,70 40,70 L20,70 Q10,70 10,60 L10,30 Q10,20 20,20 Z M50,30 Q50,20 60,20 L80,20 Q90,20 90,30 L90,60 Q90,70 80,70 L60,70 Q50,70 50,80" fill="#fffbf0"/><line x1="50" y1="30" x2="50" y2="80"/></svg>`
-        }; // <--- 这一行有分号，也别漏了
-
-        const handleWidgetImage = (e) => {
-            const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => { 
-                if(!store.theme) store.theme = {};
-                store.theme.widgetImg = ev.target.result;
-                saveAll();
-            };
-            r.readAsDataURL(f);
-        };
-
-        const batteryLevel = ref(100);
-        const fullDate = computed(() => {
-            const d = now.value;
-            const weekMap = ['日', '一', '二', '三', '四', '五', '六'];
-            return `${d.getMonth()+1}月${d.getDate()}日 星期${weekMap[d.getDay()]}`;
-        });
-        
-        onMounted(async () => {
-            if (navigator.getBattery) {
-                try {
-                    const battery = await navigator.getBattery();
-                    batteryLevel.value = Math.floor(battery.level * 100);
-                    battery.addEventListener('levelchange', () => { batteryLevel.value = Math.floor(battery.level * 100); });
-                } catch(e) {}
-            }
-        });
         return {
             currentApp, currentTime, currentDate, openApp, goHome, store, activeTab, currentChatId, 
-            showAddRoleModal, showRoleOptionModal, showChatDetails, showStickerMenu, showChatEmoji, emojiTab, editingChat, diaryTab, calendarDate, calendarGrid, changeMonth, randomMemory,
+            showAddRoleModal, showRoleOptionModal, showChatDetails, showStickerMenu, showChatEmoji, emojiTab, editingChat, diaryTab, calendarDate, calendarGrid, changeMonth, randomMemory, diaryDateInput, diaryTimeInput, diaryWeather, weatherMap, toggleWeather, selectedDiaryEntry, openDiaryDetail, deleteDiaryEntry,
             showEditRoleModal, tempEditRole, currentEditIndex, openEditRole, createNewRole, saveEditRole, deleteEditRole, 
             modelList, fetching, inputText, isLoading, chatBox, currentChatData, tempRole, defaultEmojis,
             diaryInput, diaryImages, showDiaryEmoji, toasts, showToast, showRedPacketModal, rpAmount, rpNote, sendRedPacket,
             addNewChat, enterChat, exitChat, saveAll, saveAllManual, sendText, sendImage, sendSticker, triggerAiReply, startChatFromContact,
             openChatSettings, saveSettings, updateChatAvatar, clearHistory, exportChatHistory, importChatHistory,
             previewImage, addCustomSticker, importCharacterCard, importCssFile, importWorldFile, handleImageUpload,
-            fetchModels, addDiaryImage, saveDiary, deleteDiary, triggerDiaryAI, triggerManualSummary, importUserPersona,
-            presetSelect, presetNameInput, savePreset, updatePreset, loadPreset, deletePreset, defaultDogAvatar, defaultCatAvatar,
-            exportAllData, importAllData, resetAllData, triggerAutoChat, customIcons, handleWidgetImage, batteryLevel, fullDate,// <--- 新增的都在这里，逗号分隔
+            fetchModels, addDiaryImage, saveDiary, triggerDiaryAI, triggerManualSummary, importUserPersona,
+            presetSelect, presetNameInput, savePreset, updatePreset, loadPreset, deletePreset, defaultDogAvatar, defaultCatAvatar, batteryLevel, 
+createNewStickerGroup, 
+deleteStickerGroup, 
+openStickerUploadMenu, 
+handleStickerFile,
+stickerFileInput,
         };
     }
 }).mount('#app');
 </script>
 </body>
-
 </html>
-
-
-
